@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manager SLA</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <section class="login-screen" id="login-screen" aria-label="Login">
+      <div class="login-card">
+        <div class="brand login-brand">
+          <div class="brand-mark">MS</div>
+          <div>
+            <strong>Manager SLA</strong>
+            <span>Admin geral</span>
+          </div>
+        </div>
+        <form id="login-form" class="login-form">
+          <label>
+            E-mail
+            <input id="login-email" type="email" autocomplete="username" value="admin@manager-sla.local" required />
+          </label>
+          <label>
+            Senha
+            <input id="login-password" type="password" autocomplete="current-password" value="Admin@123" required />
+          </label>
+          <p class="login-error" id="login-error" role="alert"></p>
+          <button class="primary-button" type="submit">Entrar</button>
+        </form>
+        <div class="login-providers" aria-label="Provedores externos">
+          <button class="secondary-button" type="button">Office 365</button>
+          <button class="secondary-button" type="button">Google</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="app-shell" id="app-shell" hidden>
+      <aside class="sidebar" aria-label="Navegacao principal">
+        <div class="brand">
+          <div class="brand-mark">MS</div>
+          <div>
+            <strong>Manager SLA</strong>
+            <span>ITIL + Zabbix</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Modulos do sistema">
+          <button class="nav-item is-active" type="button" data-view="dashboard">
+            <span>⌁</span>
+            Dashboard
+          </button>
+          <button class="nav-item" type="button" data-view="services">
+            <span>▦</span>
+            Servicos
+          </button>
+          <button class="nav-item" type="button" data-view="assets">
+            <span>◉</span>
+            Ativos Zabbix
+          </button>
+          <button class="nav-item" type="button" data-view="zabbix">
+            <span>⌬</span>
+            Servidores Zabbix
+          </button>
+          <button class="nav-item" type="button" data-view="templates">
+            <span>◌</span>
+            Templates
+          </button>
+          <button class="nav-item" type="button" data-view="users">
+            <span>◎</span>
+            Usuarios
+          </button>
+          <button class="nav-item" type="button" data-view="itil">
+            <span>◇</span>
+            ITIL
+          </button>
+        </nav>
+
+        <section class="tenant-card">
+          <span class="meta-label">Tenant ativo</span>
+          <select id="tenant-select" aria-label="Selecionar empresa"></select>
+          <p id="tenant-summary">Carregando empresa...</p>
+        </section>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Gestao de SLA multi-tenant</p>
+            <h1 id="page-title">Dashboard operacional</h1>
+          </div>
+          <div class="top-actions">
+            <span class="user-chip" id="current-user">Admin geral</span>
+            <button class="icon-button" type="button" id="refresh-button" title="Sincronizar Zabbix" aria-label="Sincronizar Zabbix">↻</button>
+            <button class="primary-button" type="button" id="new-service-button">Novo SLA</button>
+            <button class="secondary-button" type="button" id="logout-button">Sair</button>
+          </div>
+        </header>
+
+        <section class="auth-strip" aria-label="Status de autenticacao">
+          <div>
+            <span class="meta-label">Entrada permitida</span>
+            <strong>Office 365 e Google</strong>
+          </div>
+          <p>Todo usuario autenticado precisa ser liberado por um administrador do tenant antes de visualizar dashboards.</p>
+        </section>
+
+        <section class="view is-visible" id="view-dashboard">
+          <section class="metrics-grid" aria-label="Indicadores principais">
+            <article class="metric-card">
+              <span>SLA medio</span>
+              <strong id="metric-sla">0%</strong>
+              <small>Servicos monitorados</small>
+            </article>
+            <article class="metric-card warning">
+              <span>Servicos em risco</span>
+              <strong id="metric-risk">0</strong>
+              <small>Abaixo da meta contratual</small>
+            </article>
+            <article class="metric-card danger">
+              <span>Incidentes abertos</span>
+              <strong id="metric-incidents">0</strong>
+              <small>Afetam calculo de SLA</small>
+            </article>
+            <article class="metric-card">
+              <span>Ativos Zabbix</span>
+              <strong id="metric-assets">0</strong>
+              <small>Hosts e itens vinculados</small>
+            </article>
+          </section>
+
+          <section class="dashboard-grid">
+            <article class="chart-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Radar de SLA por servico</h2>
+                  <p>Aneis concentricos por servico, com SLAs vencidos no centro.</p>
+                </div>
+                <select id="period-select" aria-label="Periodo do grafico">
+                  <option value="30">30 dias</option>
+                  <option value="90">90 dias</option>
+                  <option value="180">180 dias</option>
+                </select>
+              </div>
+              <div class="chart-frame">
+                <canvas id="sla-chart" width="1100" height="520" aria-label="Grafico radial de SLA por servico"></canvas>
+              </div>
+            </article>
+
+            <aside class="detail-panel">
+              <span class="meta-label">Servico selecionado</span>
+              <h2 id="service-title">Selecione um servico</h2>
+              <p id="service-description">Clique em um servico para ver meta, ativo Zabbix, dono e proxima acao.</p>
+              <dl>
+                <div>
+                  <dt>Meta SLA</dt>
+                  <dd id="service-target">-</dd>
+                </div>
+                <div>
+                  <dt>Item Zabbix</dt>
+                  <dd id="service-zabbix">-</dd>
+                </div>
+                <div>
+                  <dt>Responsavel</dt>
+                  <dd id="service-owner">-</dd>
+                </div>
+                <div>
+                  <dt>Proxima acao ITIL</dt>
+                  <dd id="service-action">-</dd>
+                </div>
+              </dl>
+            </aside>
+          </section>
+        </section>
+
+        <section class="view" id="view-services">
+          <div class="section-toolbar">
+            <div>
+              <h2>SLAs por servico</h2>
+              <p>Cadastre servicos, metas, janelas de suporte e vinculos com itens do Zabbix.</p>
+            </div>
+            <button class="secondary-button" type="button">Cadastrar servico</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Servico</th>
+                  <th>Meta</th>
+                  <th>Atual</th>
+                  <th>Janela</th>
+                  <th>Dono</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="services-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="view-assets">
+          <div class="section-toolbar">
+            <div>
+              <h2>Ativos monitorados</h2>
+              <p>Ativos cadastrados pelo painel do cliente e vinculados a servidores, hosts, triggers e itens do Zabbix.</p>
+            </div>
+            <button class="secondary-button" type="button">Cadastrar ativo</button>
+          </div>
+          <div class="cards-grid" id="assets-grid"></div>
+        </section>
+
+        <section class="view" id="view-zabbix">
+          <div class="section-toolbar">
+            <div>
+              <h2>Servidores Zabbix</h2>
+              <p>Cadastre as origens Zabbix por empresa para consultar hosts, itens, triggers, eventos e problemas.</p>
+            </div>
+            <button class="secondary-button" type="button" id="new-zabbix-button">Cadastrar servidor</button>
+          </div>
+          <div class="connection-summary" aria-label="Resumo das conexoes Zabbix">
+            <article>
+              <span class="meta-label">Conexoes ativas</span>
+              <strong id="zabbix-active-count">0</strong>
+            </article>
+            <article>
+              <span class="meta-label">Hosts descobertos</span>
+              <strong id="zabbix-host-count">0</strong>
+            </article>
+            <article>
+              <span class="meta-label">Ultima sincronizacao</span>
+              <strong id="zabbix-last-sync">-</strong>
+            </article>
+          </div>
+          <div class="cards-grid" id="zabbix-grid"></div>
+          <section class="discovery-panel" aria-label="Ativos e itens descobertos no Zabbix">
+            <div class="section-toolbar">
+              <div>
+                <h2>Ativos e itens descobertos</h2>
+                <p>Selecione um servidor Zabbix para carregar hosts monitorados e seus itens disponiveis.</p>
+              </div>
+              <button class="secondary-button" type="button" id="discover-zabbix-button">Buscar ativos</button>
+            </div>
+            <div class="discovery-header">
+              <label>
+                Servidor Zabbix
+                <select id="zabbix-server-select" aria-label="Selecionar servidor Zabbix"></select>
+              </label>
+              <div>
+                <span class="meta-label">Resultado</span>
+                <strong id="discovery-summary">Nenhum servidor selecionado</strong>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ativo</th>
+                    <th>Host ID</th>
+                    <th>Interface</th>
+                    <th>Itens disponiveis</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="discovery-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="view-templates">
+          <div class="section-toolbar">
+            <div>
+              <h2>Templates de grafico</h2>
+              <p>Crie modelos estilo Grafana e vincule cada painel ao ativo monitorado.</p>
+            </div>
+            <button class="secondary-button" type="button" id="new-template-button">Cadastrar template</button>
+          </div>
+          <div class="template-layout">
+            <div class="cards-grid" id="templates-grid"></div>
+            <aside class="template-preview" aria-label="Previa do template">
+              <span class="meta-label">Previa</span>
+              <h3 id="template-preview-title">Selecione um template</h3>
+              <div class="mini-panel" id="template-preview-panel">
+                <span></span>
+                <strong>-</strong>
+                <small>Sem template selecionado</small>
+              </div>
+              <dl>
+                <div>
+                  <dt>Ativo</dt>
+                  <dd id="template-preview-asset">-</dd>
+                </div>
+                <div>
+                  <dt>Item Zabbix</dt>
+                  <dd id="template-preview-item">-</dd>
+                </div>
+                <div>
+                  <dt>Thresholds</dt>
+                  <dd id="template-preview-thresholds">-</dd>
+                </div>
+              </dl>
+            </aside>
+          </div>
+          <div class="table-wrap template-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Template</th>
+                  <th>Tipo</th>
+                  <th>Ativo</th>
+                  <th>Item monitorado</th>
+                  <th>Unidade</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="templates-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="view-users">
+          <div class="section-toolbar">
+            <div>
+              <h2>Usuarios e permissoes</h2>
+              <p>Administradores liberam usuarios autenticados e definem acesso por dashboard.</p>
+            </div>
+            <button class="secondary-button" type="button">Adicionar usuario</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Provedor</th>
+                  <th>Papel</th>
+                  <th>Dashboards</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="users-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="view-itil">
+          <div class="section-toolbar">
+            <div>
+              <h2>Fluxo ITIL</h2>
+              <p>Modelo inicial para incidentes, problemas, mudancas e revisao continua de servico.</p>
+            </div>
+          </div>
+          <div class="itil-flow">
+            <article>
+              <span>1</span>
+              <h3>Evento Zabbix</h3>
+              <p>Coleta de disponibilidade, latencia, incidentes e trigger de impacto.</p>
+            </article>
+            <article>
+              <span>2</span>
+              <h3>Incidente</h3>
+              <p>Registro com severidade, servico afetado, tempo de indisponibilidade e dono.</p>
+            </article>
+            <article>
+              <span>3</span>
+              <h3>Problema</h3>
+              <p>Analise de causa raiz para recorrencia ou falhas que ameacam o SLA.</p>
+            </article>
+            <article>
+              <span>4</span>
+              <h3>Mudanca</h3>
+              <p>Plano aprovado para correcao, rollback, janela e comunicacao ao cliente.</p>
+            </article>
+            <article>
+              <span>5</span>
+              <h3>Revisao SLA</h3>
+              <p>Relatorio por contrato, creditos, excecoes e melhoria continua.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="service-dialog">
+      <form method="dialog" class="dialog-card">
+        <div class="panel-heading">
+          <div>
+            <span class="meta-label">Novo SLA</span>
+            <h2>Cadastrar servico</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
+        </div>
+        <div class="form-grid">
+          <label>
+            Empresa
+            <select>
+              <option>Acme Telecom</option>
+              <option>Hospital Prisma</option>
+            </select>
+          </label>
+          <label>
+            Nome do servico
+            <input type="text" placeholder="Ex: API de pagamentos" />
+          </label>
+          <label>
+            Meta SLA
+            <input type="number" min="0" max="100" step="0.01" placeholder="99.90" />
+          </label>
+          <label>
+            Host Zabbix
+            <input type="text" placeholder="host:web-prod-01" />
+          </label>
+          <label>
+            Item Zabbix
+            <input type="text" placeholder="icmpping[,4]" />
+          </label>
+          <label>
+            Janela
+            <select>
+              <option>24x7</option>
+              <option>8x5</option>
+              <option>Personalizada</option>
+            </select>
+          </label>
+        </div>
+        <menu>
+          <button class="secondary-button" value="cancel">Cancelar</button>
+          <button class="primary-button" value="default">Salvar SLA</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="zabbix-dialog">
+      <form method="dialog" class="dialog-card" id="zabbix-form">
+        <div class="panel-heading">
+          <div>
+            <span class="meta-label">Nova conexao</span>
+            <h2>Cadastrar servidor Zabbix</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
+        </div>
+        <div class="form-grid">
+          <label>
+            Empresa
+            <select id="zabbix-tenant-options">
+              <option>Acme Telecom</option>
+              <option>Hospital Prisma</option>
+            </select>
+          </label>
+          <label>
+            Nome da conexao
+            <input id="zabbix-name" type="text" placeholder="Ex: Zabbix Producao" required />
+          </label>
+          <label class="span-2">
+            URL da API
+            <input id="zabbix-url" type="url" placeholder="https://zabbix.empresa.com/api_jsonrpc.php" required />
+          </label>
+          <label>
+            Metodo de autenticacao
+            <select id="zabbix-auth">
+              <option>API Token</option>
+              <option>Usuario e senha</option>
+            </select>
+          </label>
+          <label>
+            Ambiente
+            <select id="zabbix-environment">
+              <option>Producao</option>
+              <option>Homologacao</option>
+              <option>Desenvolvimento</option>
+            </select>
+          </label>
+          <label class="span-2">
+            Token ou segredo
+            <input id="zabbix-secret" type="password" placeholder="Armazenar criptografado no backend" />
+          </label>
+        </div>
+        <div class="dialog-note">
+          O prototipo nao salva segredos. No backend real, o token deve ser criptografado e visivel apenas para administradores do tenant.
+        </div>
+        <menu>
+          <button class="secondary-button" value="cancel">Cancelar</button>
+          <button class="primary-button" type="submit">Salvar e buscar ativos</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="template-dialog">
+      <form method="dialog" class="dialog-card" id="template-form">
+        <div class="panel-heading">
+          <div>
+            <span class="meta-label">Grafana-like</span>
+            <h2>Cadastrar template de grafico</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
+        </div>
+        <div class="form-grid">
+          <label>
+            Nome do template
+            <input id="template-name" type="text" placeholder="Ex: Disponibilidade ICMP" required />
+          </label>
+          <label>
+            Tipo de grafico
+            <select id="template-chart-type">
+              <option value="stat">Stat</option>
+              <option value="gauge">Gauge</option>
+              <option value="timeseries">Time series</option>
+              <option value="bar">Bar gauge</option>
+              <option value="heatmap">Heatmap</option>
+            </select>
+          </label>
+          <label>
+            Ativo monitorado
+            <select id="template-asset"></select>
+          </label>
+          <label>
+            Item Zabbix
+            <select id="template-item"></select>
+          </label>
+          <label>
+            Unidade
+            <select id="template-unit">
+              <option value="%">%</option>
+              <option value="ms">ms</option>
+              <option value="req/min">req/min</option>
+              <option value="bps">bps</option>
+              <option value="count">count</option>
+            </select>
+          </label>
+          <label>
+            Agregacao
+            <select id="template-aggregation">
+              <option value="avg">Media</option>
+              <option value="last">Ultimo valor</option>
+              <option value="max">Maximo</option>
+              <option value="min">Minimo</option>
+              <option value="sum">Soma</option>
+              <option value="p95">P95</option>
+            </select>
+          </label>
+          <label>
+            Alerta amarelo
+            <input id="template-warning" type="number" step="0.01" placeholder="Ex: 99.50" />
+          </label>
+          <label>
+            Alerta vermelho
+            <input id="template-critical" type="number" step="0.01" placeholder="Ex: 99.00" />
+          </label>
+        </div>
+        <div class="dialog-note">
+          O template define visual, item Zabbix, unidade, agregacao e limites. Depois ele pode ser reutilizado em dashboards por usuario.
+        </div>
+        <menu>
+          <button class="secondary-button" value="cancel">Cancelar</button>
+          <button class="primary-button" type="submit">Salvar template</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
