@@ -7,7 +7,35 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="app-shell">
+    <section class="login-screen" id="login-screen" aria-label="Login">
+      <div class="login-card">
+        <div class="brand login-brand">
+          <div class="brand-mark">MS</div>
+          <div>
+            <strong>Manager SLA</strong>
+            <span>Admin geral</span>
+          </div>
+        </div>
+        <form id="login-form" class="login-form">
+          <label>
+            E-mail
+            <input id="login-email" type="email" autocomplete="username" value="admin@manager-sla.local" required />
+          </label>
+          <label>
+            Senha
+            <input id="login-password" type="password" autocomplete="current-password" value="Admin@123" required />
+          </label>
+          <p class="login-error" id="login-error" role="alert"></p>
+          <button class="primary-button" type="submit">Entrar</button>
+        </form>
+        <div class="login-providers" aria-label="Provedores externos">
+          <button class="secondary-button" type="button">Office 365</button>
+          <button class="secondary-button" type="button">Google</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="app-shell" id="app-shell" hidden>
       <aside class="sidebar" aria-label="Navegacao principal">
         <div class="brand">
           <div class="brand-mark">MS</div>
@@ -29,6 +57,10 @@
           <button class="nav-item" type="button" data-view="assets">
             <span>◉</span>
             Ativos Zabbix
+          </button>
+          <button class="nav-item" type="button" data-view="zabbix">
+            <span>⌬</span>
+            Servidores Zabbix
           </button>
           <button class="nav-item" type="button" data-view="users">
             <span>◎</span>
@@ -54,8 +86,10 @@
             <h1 id="page-title">Dashboard operacional</h1>
           </div>
           <div class="top-actions">
+            <span class="user-chip" id="current-user">Admin geral</span>
             <button class="icon-button" type="button" id="refresh-button" title="Sincronizar Zabbix" aria-label="Sincronizar Zabbix">↻</button>
             <button class="primary-button" type="button" id="new-service-button">Novo SLA</button>
+            <button class="secondary-button" type="button" id="logout-button">Sair</button>
           </div>
         </header>
 
@@ -164,11 +198,36 @@
           <div class="section-toolbar">
             <div>
               <h2>Ativos monitorados</h2>
-              <p>Ativos cadastrados pelo painel do cliente e vinculados a hosts, triggers e itens do Zabbix.</p>
+              <p>Ativos cadastrados pelo painel do cliente e vinculados a servidores, hosts, triggers e itens do Zabbix.</p>
             </div>
             <button class="secondary-button" type="button">Cadastrar ativo</button>
           </div>
           <div class="cards-grid" id="assets-grid"></div>
+        </section>
+
+        <section class="view" id="view-zabbix">
+          <div class="section-toolbar">
+            <div>
+              <h2>Servidores Zabbix</h2>
+              <p>Cadastre as origens Zabbix por empresa para consultar hosts, itens, triggers, eventos e problemas.</p>
+            </div>
+            <button class="secondary-button" type="button" id="new-zabbix-button">Cadastrar servidor</button>
+          </div>
+          <div class="connection-summary" aria-label="Resumo das conexoes Zabbix">
+            <article>
+              <span class="meta-label">Conexoes ativas</span>
+              <strong id="zabbix-active-count">0</strong>
+            </article>
+            <article>
+              <span class="meta-label">Hosts descobertos</span>
+              <strong id="zabbix-host-count">0</strong>
+            </article>
+            <article>
+              <span class="meta-label">Ultima sincronizacao</span>
+              <strong id="zabbix-last-sync">-</strong>
+            </article>
+          </div>
+          <div class="cards-grid" id="zabbix-grid"></div>
         </section>
 
         <section class="view" id="view-users">
@@ -278,6 +337,61 @@
         <menu>
           <button class="secondary-button" value="cancel">Cancelar</button>
           <button class="primary-button" value="default">Salvar SLA</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="zabbix-dialog">
+      <form method="dialog" class="dialog-card">
+        <div class="panel-heading">
+          <div>
+            <span class="meta-label">Nova conexao</span>
+            <h2>Cadastrar servidor Zabbix</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
+        </div>
+        <div class="form-grid">
+          <label>
+            Empresa
+            <select id="zabbix-tenant-options">
+              <option>Acme Telecom</option>
+              <option>Hospital Prisma</option>
+            </select>
+          </label>
+          <label>
+            Nome da conexao
+            <input type="text" placeholder="Ex: Zabbix Produção" />
+          </label>
+          <label class="span-2">
+            URL da API
+            <input type="url" placeholder="https://zabbix.empresa.com/api_jsonrpc.php" />
+          </label>
+          <label>
+            Metodo de autenticacao
+            <select>
+              <option>API Token</option>
+              <option>Usuario e senha</option>
+            </select>
+          </label>
+          <label>
+            Ambiente
+            <select>
+              <option>Producao</option>
+              <option>Homologacao</option>
+              <option>Desenvolvimento</option>
+            </select>
+          </label>
+          <label class="span-2">
+            Token ou segredo
+            <input type="password" placeholder="Armazenar criptografado no backend" />
+          </label>
+        </div>
+        <div class="dialog-note">
+          O prototipo nao salva segredos. No backend real, o token deve ser criptografado e visivel apenas para administradores do tenant.
+        </div>
+        <menu>
+          <button class="secondary-button" value="cancel">Cancelar</button>
+          <button class="primary-button" value="default">Salvar conexao</button>
         </menu>
       </form>
     </dialog>

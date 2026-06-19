@@ -2,6 +2,9 @@
 
 ## Tabelas principais
 
+O schema executavel esta em `database/migrations/001_initial_schema.sql`.
+Para desenvolvimento local, use SQLite. Para producao, a recomendacao e PostgreSQL mantendo o mesmo desenho logico.
+
 ### tenants
 
 - id
@@ -92,7 +95,10 @@ Roles sugeridos:
 - base_url
 - auth_type
 - encrypted_secret
+- environment
+- version
 - status
+- last_sync_at
 
 ### zabbix_bindings
 

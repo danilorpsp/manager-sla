@@ -49,9 +49,33 @@ const tenants = [
       },
     ],
     assets: [
-      { name: "core-edge-01", type: "Router", zabbixId: "10481", items: 18, status: "ok" },
-      { name: "vpn-gw-02", type: "Gateway", zabbixId: "10492", items: 12, status: "ok" },
-      { name: "billing-web-01", type: "Linux Server", zabbixId: "10520", items: 31, status: "risk" },
+      { name: "core-edge-01", type: "Router", zabbixServer: "Zabbix NOC", zabbixId: "10481", items: 18, status: "ok" },
+      { name: "vpn-gw-02", type: "Gateway", zabbixServer: "Zabbix NOC", zabbixId: "10492", items: 12, status: "ok" },
+      { name: "billing-web-01", type: "Linux Server", zabbixServer: "Zabbix Aplicacoes", zabbixId: "10520", items: 31, status: "risk" },
+    ],
+    zabbixServers: [
+      {
+        name: "Zabbix NOC",
+        url: "https://zabbix-noc.acme.local/api_jsonrpc.php",
+        version: "6.4",
+        auth: "API Token",
+        environment: "Producao",
+        hosts: 128,
+        items: 2406,
+        lastSync: "Hoje 09:42",
+        status: "ok",
+      },
+      {
+        name: "Zabbix Aplicacoes",
+        url: "https://zabbix-apps.acme.local/api_jsonrpc.php",
+        version: "7.0",
+        auth: "API Token",
+        environment: "Producao",
+        hosts: 42,
+        items: 914,
+        lastSync: "Hoje 09:37",
+        status: "risk",
+      },
     ],
     usersList: [
       { name: "Ana Costa", provider: "Office 365", role: "Administrador", dashboards: "Todos", status: "ok" },
@@ -96,8 +120,21 @@ const tenants = [
       },
     ],
     assets: [
-      { name: "api-laudos-01", type: "Application", zabbixId: "21031", items: 22, status: "ok" },
-      { name: "pep-app-03", type: "Application", zabbixId: "21062", items: 28, status: "risk" },
+      { name: "api-laudos-01", type: "Application", zabbixServer: "Zabbix Hospitalar", zabbixId: "21031", items: 22, status: "ok" },
+      { name: "pep-app-03", type: "Application", zabbixServer: "Zabbix Hospitalar", zabbixId: "21062", items: 28, status: "risk" },
+    ],
+    zabbixServers: [
+      {
+        name: "Zabbix Hospitalar",
+        url: "https://monitor.prisma.local/api_jsonrpc.php",
+        version: "6.0 LTS",
+        auth: "API Token",
+        environment: "Producao",
+        hosts: 67,
+        items: 1330,
+        lastSync: "Hoje 09:51",
+        status: "ok",
+      },
     ],
     usersList: [
       { name: "Livia Duarte", provider: "Office 365", role: "Administrador", dashboards: "Todos", status: "ok" },
@@ -107,11 +144,22 @@ const tenants = [
   },
 ];
 
+const defaultAdmin = {
+  email: "admin@manager-sla.local",
+  password: "Admin@123",
+  name: "Administrador Geral",
+  role: "platform_admin",
+};
+
 const state = {
   tenantId: tenants[0].id,
   selectedServiceId: tenants[0].services[0].id,
 };
 
+const loginScreen = document.querySelector("#login-screen");
+const appShell = document.querySelector("#app-shell");
+const loginForm = document.querySelector("#login-form");
+const loginError = document.querySelector("#login-error");
 const tenantSelect = document.querySelector("#tenant-select");
 const navItems = document.querySelectorAll(".nav-item");
 const views = document.querySelectorAll(".view");
@@ -137,6 +185,37 @@ function statusClass(service) {
   if (service.status === "late") return "late";
   if (service.status === "risk") return "risk";
   return "ok";
+}
+
+function showAuthenticatedApp() {
+  loginScreen.hidden = true;
+  appShell.hidden = false;
+  document.querySelector("#current-user").textContent = defaultAdmin.name;
+  renderAll();
+}
+
+function showLogin() {
+  sessionStorage.removeItem("managerSlaSession");
+  appShell.hidden = true;
+  loginScreen.hidden = false;
+  loginError.textContent = "";
+}
+
+function handleLogin(event) {
+  event.preventDefault();
+  const email = document.querySelector("#login-email").value.trim().toLowerCase();
+  const password = document.querySelector("#login-password").value;
+
+  if (email === defaultAdmin.email && password === defaultAdmin.password) {
+    sessionStorage.setItem(
+      "managerSlaSession",
+      JSON.stringify({ email: defaultAdmin.email, role: defaultAdmin.role }),
+    );
+    showAuthenticatedApp();
+    return;
+  }
+
+  loginError.textContent = "Usuario ou senha invalidos.";
 }
 
 function initTenantSelect() {
@@ -287,8 +366,40 @@ function renderAssets() {
           <span class="pill ${asset.status === "ok" ? "ok" : "risk"}">${statusLabel[asset.status]}</span>
           <h3>${asset.name}</h3>
           <p><strong>Tipo:</strong> ${asset.type}</p>
+          <p><strong>Servidor:</strong> ${asset.zabbixServer}</p>
           <p><strong>Zabbix hostid:</strong> ${asset.zabbixId}</p>
           <p><strong>Itens monitorados:</strong> ${asset.items}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderZabbixServers() {
+  const tenant = getTenant();
+  const servers = tenant.zabbixServers || [];
+  const activeServers = servers.filter((server) => server.status === "ok").length;
+  const hostCount = servers.reduce((sum, server) => sum + server.hosts, 0);
+  const lastSync = servers[0]?.lastSync || "-";
+
+  document.querySelector("#zabbix-active-count").textContent = activeServers;
+  document.querySelector("#zabbix-host-count").textContent = hostCount;
+  document.querySelector("#zabbix-last-sync").textContent = lastSync;
+  document.querySelector("#zabbix-grid").innerHTML = servers
+    .map(
+      (server) => `
+        <article class="asset-card connection-card">
+          <div class="connection-card-header">
+            <span class="pill ${server.status === "ok" ? "ok" : "risk"}">${statusLabel[server.status]}</span>
+            <span>${server.environment}</span>
+          </div>
+          <h3>${server.name}</h3>
+          <p><strong>URL:</strong> <span class="mono-value">${server.url}</span></p>
+          <p><strong>Versao:</strong> ${server.version}</p>
+          <p><strong>Autenticacao:</strong> ${server.auth}</p>
+          <p><strong>Hosts:</strong> ${server.hosts}</p>
+          <p><strong>Itens:</strong> ${server.items}</p>
+          <p><strong>Ultima sync:</strong> ${server.lastSync}</p>
         </article>
       `,
     )
@@ -320,6 +431,7 @@ function showView(viewName) {
     dashboard: "Dashboard operacional",
     services: "SLAs por servico",
     assets: "Ativos Zabbix",
+    zabbix: "Servidores Zabbix",
     users: "Usuarios e permissoes",
     itil: "Fluxo ITIL",
   };
@@ -333,6 +445,7 @@ function renderAll() {
   renderServiceDetails();
   renderServicesTable();
   renderAssets();
+  renderZabbixServers();
   renderUsers();
 }
 
@@ -344,11 +457,23 @@ document.querySelector("#new-service-button").addEventListener("click", () => {
   document.querySelector("#service-dialog").showModal();
 });
 
+document.querySelector("#new-zabbix-button").addEventListener("click", () => {
+  document.querySelector("#zabbix-dialog").showModal();
+});
+
 document.querySelector("#refresh-button").addEventListener("click", () => {
   renderAll();
 });
 
 document.querySelector("#period-select").addEventListener("change", renderChart);
 
+loginForm.addEventListener("submit", handleLogin);
+document.querySelector("#logout-button").addEventListener("click", showLogin);
+
 initTenantSelect();
-renderAll();
+
+if (sessionStorage.getItem("managerSlaSession")) {
+  showAuthenticatedApp();
+} else {
+  showLogin();
+}

@@ -6,13 +6,15 @@ Permitir que cada tenant conecte sua propria origem Zabbix e vincule ativos do p
 
 ## Fluxo de cadastro
 
-1. Administrador do tenant cadastra uma conexao Zabbix.
-2. Sistema valida `apiinfo.version`.
-3. Sistema autentica via token ou usuario/senha.
-4. Cliente cadastra um ativo no painel.
-5. Administrador vincula o ativo a um `hostid`.
-6. Para cada servico, administrador define itens ou triggers que afetam o SLA.
-7. Worker coleta historico e consolida snapshots.
+1. Administrador do tenant cadastra um servidor Zabbix.
+2. Cadastro recebe nome, URL da API, ambiente, metodo de autenticacao e segredo.
+3. Sistema valida `apiinfo.version`.
+4. Sistema autentica via token ou usuario/senha.
+5. Cliente cadastra um ativo no painel.
+6. Administrador escolhe qual servidor Zabbix sera usado pelo ativo.
+7. Administrador vincula o ativo a um `hostid`.
+8. Para cada servico, administrador define itens ou triggers que afetam o SLA.
+9. Worker coleta historico e consolida snapshots.
 
 ## Metodos Zabbix relevantes
 
@@ -56,6 +58,7 @@ O periodo total deve respeitar a janela do contrato:
 - Criptografar segredo em repouso.
 - Registrar auditoria de quem cadastrou ou alterou conexoes.
 - Limitar acesso as credenciais apenas a administradores do tenant.
+- Validar se a URL informada aponta para `/api_jsonrpc.php` antes de ativar a conexao.
 
 ## Exemplo de chamada
 

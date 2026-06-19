@@ -1,0 +1,4 @@
+database/*.sqlite3
+database/*.sqlite3-*
+__pycache__/
+*.pyc

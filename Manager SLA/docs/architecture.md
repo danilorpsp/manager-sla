@@ -46,6 +46,7 @@ Construir uma plataforma multi-tenant para gestao de SLA seguindo praticas ITIL,
 - Frontend SPA: React, Vue ou Svelte.
 - Backend API: Django, Laravel, NestJS, FastAPI ou .NET.
 - Banco: PostgreSQL com `tenant_id` em todas as tabelas de negocio.
+- Desenvolvimento local: SQLite inicializado por `backend/init_db.py`.
 - Cache/fila: Redis.
 - Worker: sincronizacao Zabbix, calculo de SLA e geracao de snapshots.
 - Observabilidade: logs por tenant, auditoria de acesso e trilha de alteracoes.
