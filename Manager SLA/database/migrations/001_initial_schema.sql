@@ -82,7 +82,6 @@ CREATE TABLE IF NOT EXISTS services (
 
 CREATE TABLE IF NOT EXISTS zabbix_connections (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tenant_id INTEGER NOT NULL,
   name TEXT NOT NULL,
   base_url TEXT NOT NULL,
   auth_type TEXT NOT NULL DEFAULT 'api_token',
@@ -93,8 +92,22 @@ CREATE TABLE IF NOT EXISTS zabbix_connections (
   last_sync_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (name)
+);
+
+CREATE TABLE IF NOT EXISTS tenant_zabbix_access (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id INTEGER NOT NULL,
+  zabbix_connection_id INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  granted_by_user_id INTEGER,
+  granted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
-  UNIQUE (tenant_id, name)
+  FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE,
+  FOREIGN KEY (granted_by_user_id) REFERENCES users(id),
+  UNIQUE (tenant_id, zabbix_connection_id)
 );
 
 CREATE TABLE IF NOT EXISTS assets (
@@ -116,7 +129,6 @@ CREATE TABLE IF NOT EXISTS assets (
 
 CREATE TABLE IF NOT EXISTS zabbix_discovered_hosts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tenant_id INTEGER NOT NULL,
   zabbix_connection_id INTEGER NOT NULL,
   host_id TEXT NOT NULL,
   host_name TEXT NOT NULL,
@@ -125,14 +137,12 @@ CREATE TABLE IF NOT EXISTS zabbix_discovered_hosts (
   last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE,
-  UNIQUE (tenant_id, zabbix_connection_id, host_id)
+  UNIQUE (zabbix_connection_id, host_id)
 );
 
 CREATE TABLE IF NOT EXISTS zabbix_discovered_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  tenant_id INTEGER NOT NULL,
   zabbix_connection_id INTEGER NOT NULL,
   discovered_host_id INTEGER NOT NULL,
   item_id TEXT NOT NULL,
@@ -144,10 +154,9 @@ CREATE TABLE IF NOT EXISTS zabbix_discovered_items (
   last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE,
   FOREIGN KEY (discovered_host_id) REFERENCES zabbix_discovered_hosts(id) ON DELETE CASCADE,
-  UNIQUE (tenant_id, zabbix_connection_id, item_id)
+  UNIQUE (zabbix_connection_id, item_id)
 );
 
 CREATE TABLE IF NOT EXISTS service_assets (
@@ -263,14 +272,17 @@ CREATE INDEX IF NOT EXISTS idx_services_tenant_status
 CREATE INDEX IF NOT EXISTS idx_assets_tenant_status
   ON assets(tenant_id, status);
 
-CREATE INDEX IF NOT EXISTS idx_zabbix_connections_tenant_status
-  ON zabbix_connections(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_zabbix_connections_status
+  ON zabbix_connections(status);
 
-CREATE INDEX IF NOT EXISTS idx_zabbix_discovered_hosts_tenant_connection
-  ON zabbix_discovered_hosts(tenant_id, zabbix_connection_id);
+CREATE INDEX IF NOT EXISTS idx_tenant_zabbix_access_tenant_connection
+  ON tenant_zabbix_access(tenant_id, zabbix_connection_id);
 
-CREATE INDEX IF NOT EXISTS idx_zabbix_discovered_items_tenant_host
-  ON zabbix_discovered_items(tenant_id, discovered_host_id);
+CREATE INDEX IF NOT EXISTS idx_zabbix_discovered_hosts_connection
+  ON zabbix_discovered_hosts(zabbix_connection_id);
+
+CREATE INDEX IF NOT EXISTS idx_zabbix_discovered_items_host
+  ON zabbix_discovered_items(discovered_host_id);
 
 CREATE INDEX IF NOT EXISTS idx_zabbix_bindings_tenant_asset
   ON zabbix_bindings(tenant_id, asset_id);

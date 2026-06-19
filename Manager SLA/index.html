@@ -66,6 +66,10 @@
             <span>◌</span>
             Templates
           </button>
+          <button class="nav-item" type="button" data-view="tenants">
+            <span>▣</span>
+            Tenants
+          </button>
           <button class="nav-item" type="button" data-view="users">
             <span>◎</span>
             Usuarios
@@ -212,18 +216,18 @@
         <section class="view" id="view-zabbix">
           <div class="section-toolbar">
             <div>
-              <h2>Servidores Zabbix</h2>
-              <p>Cadastre as origens Zabbix por empresa para consultar hosts, itens, triggers, eventos e problemas.</p>
+              <h2>Servidores Zabbix globais</h2>
+              <p>Cadastre uma vez e libere acesso para um ou mais tenants usarem a mesma origem Zabbix.</p>
             </div>
-            <button class="secondary-button" type="button" id="new-zabbix-button">Cadastrar servidor</button>
+            <button class="secondary-button" type="button" id="new-zabbix-button">Cadastrar Zabbix global</button>
           </div>
           <div class="connection-summary" aria-label="Resumo das conexoes Zabbix">
             <article>
-              <span class="meta-label">Conexoes ativas</span>
+              <span class="meta-label">Zabbix globais ativos</span>
               <strong id="zabbix-active-count">0</strong>
             </article>
             <article>
-              <span class="meta-label">Hosts descobertos</span>
+              <span class="meta-label">Hosts liberados ao tenant</span>
               <strong id="zabbix-host-count">0</strong>
             </article>
             <article>
@@ -236,13 +240,13 @@
             <div class="section-toolbar">
               <div>
                 <h2>Ativos e itens descobertos</h2>
-                <p>Selecione um servidor Zabbix para carregar hosts monitorados e seus itens disponiveis.</p>
+                <p>Selecione um Zabbix liberado para o tenant ativo e carregue hosts monitorados e itens disponiveis.</p>
               </div>
               <button class="secondary-button" type="button" id="discover-zabbix-button">Buscar ativos</button>
             </div>
             <div class="discovery-header">
               <label>
-                Servidor Zabbix
+                Servidor Zabbix liberado
                 <select id="zabbix-server-select" aria-label="Selecionar servidor Zabbix"></select>
               </label>
               <div>
@@ -318,23 +322,65 @@
           </div>
         </section>
 
+        <section class="view" id="view-tenants">
+          <div class="section-toolbar">
+            <div>
+              <h2>Tenants e empresas</h2>
+              <p>Cadastre empresas, acompanhe administradores e controle usuarios por tenant.</p>
+            </div>
+            <button class="secondary-button" type="button" id="new-tenant-button">Cadastrar tenant</button>
+          </div>
+          <div class="connection-summary" aria-label="Resumo dos tenants">
+            <article>
+              <span class="meta-label">Tenants ativos</span>
+              <strong id="tenant-count">0</strong>
+            </article>
+            <article>
+              <span class="meta-label">Administradores</span>
+              <strong id="tenant-admin-count">0</strong>
+            </article>
+            <article>
+              <span class="meta-label">Usuarios</span>
+              <strong id="tenant-user-count">0</strong>
+            </article>
+          </div>
+          <div class="cards-grid" id="tenants-grid"></div>
+          <div class="table-wrap template-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Empresa</th>
+                  <th>Slug</th>
+                  <th>Admins</th>
+                  <th>Usuarios</th>
+                  <th>Servicos</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="tenants-table"></tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="view" id="view-users">
           <div class="section-toolbar">
             <div>
               <h2>Usuarios e permissoes</h2>
-              <p>Administradores liberam usuarios autenticados e definem acesso por dashboard.</p>
+              <p>Administradores liberam usuarios autenticados, definem tenant e acesso por dashboard.</p>
             </div>
-            <button class="secondary-button" type="button">Adicionar usuario</button>
+            <button class="secondary-button" type="button" id="add-user-button">Adicionar usuario</button>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Usuario</th>
+                  <th>Tenant</th>
                   <th>Provedor</th>
                   <th>Papel</th>
                   <th>Dashboards</th>
                   <th>Status</th>
+                  <th>Acoes</th>
                 </tr>
               </thead>
               <tbody id="users-table"></tbody>
@@ -429,18 +475,120 @@
       </form>
     </dialog>
 
-    <dialog id="zabbix-dialog">
-      <form method="dialog" class="dialog-card" id="zabbix-form">
+    <dialog id="tenant-dialog">
+      <form method="dialog" class="dialog-card" id="tenant-form">
         <div class="panel-heading">
           <div>
-            <span class="meta-label">Nova conexao</span>
-            <h2>Cadastrar servidor Zabbix</h2>
+            <span class="meta-label">Novo tenant</span>
+            <h2>Cadastrar empresa</h2>
           </div>
           <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
         </div>
         <div class="form-grid">
           <label>
-            Empresa
+            Nome da empresa
+            <input id="tenant-name" type="text" placeholder="Ex: Cliente Alpha" required />
+          </label>
+          <label>
+            Slug
+            <input id="tenant-slug" type="text" placeholder="cliente-alpha" />
+          </label>
+          <label>
+            Administrador inicial
+            <input id="tenant-admin" type="text" placeholder="Nome do administrador" />
+          </label>
+          <label>
+            Status
+            <select id="tenant-status">
+              <option value="active">Ativo</option>
+              <option value="pending">Pendente</option>
+              <option value="blocked">Bloqueado</option>
+            </select>
+          </label>
+        </div>
+        <div class="dialog-note">
+          Todo tenant deve ter pelo menos um administrador. No backend real, essa regra sera validada antes de salvar.
+        </div>
+        <menu>
+          <button class="secondary-button" value="cancel">Cancelar</button>
+          <button class="primary-button" type="submit">Salvar tenant</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="user-dialog">
+      <form method="dialog" class="dialog-card" id="user-form">
+        <div class="panel-heading">
+          <div>
+            <span class="meta-label">Usuario</span>
+            <h2>Editar acesso</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
+        </div>
+        <input id="user-original-tenant" type="hidden" />
+        <input id="user-original-name" type="hidden" />
+        <div class="form-grid">
+          <label>
+            Nome
+            <input id="user-name" type="text" required />
+          </label>
+          <label>
+            Tenant
+            <select id="user-tenant"></select>
+          </label>
+          <label>
+            Provedor
+            <select id="user-provider">
+              <option>Office 365</option>
+              <option>Google</option>
+              <option>Local</option>
+            </select>
+          </label>
+          <label>
+            Papel
+            <select id="user-role">
+              <option>Administrador</option>
+              <option>Analista</option>
+              <option>Gestor</option>
+              <option>Solicitante</option>
+              <option>Viewer</option>
+            </select>
+          </label>
+          <label>
+            Dashboards
+            <input id="user-dashboards" type="text" placeholder="Operacional, Executivo" />
+          </label>
+          <label>
+            Status
+            <select id="user-status">
+              <option value="ok">Liberado</option>
+              <option value="pending">Pendente</option>
+              <option value="blocked">Bloqueado</option>
+            </select>
+          </label>
+        </div>
+        <div class="dialog-note">
+          Ao trocar o tenant, o usuario passa a aparecer na empresa selecionada e herda as permissoes cadastradas aqui.
+        </div>
+        <menu>
+          <button class="secondary-button" value="cancel">Cancelar</button>
+          <button class="primary-button" type="submit">Salvar usuario</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="zabbix-dialog">
+      <form method="dialog" class="dialog-card" id="zabbix-form">
+        <div class="panel-heading">
+          <div>
+            <span class="meta-label">Catalogo global</span>
+            <h2>Cadastrar Zabbix global</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="Fechar">×</button>
+        </div>
+        <div class="form-grid">
+          <label>
+            Liberar inicialmente para
             <select id="zabbix-tenant-options">
               <option>Acme Telecom</option>
               <option>Hospital Prisma</option>
@@ -475,7 +623,7 @@
           </label>
         </div>
         <div class="dialog-note">
-          O prototipo nao salva segredos. No backend real, o token deve ser criptografado e visivel apenas para administradores do tenant.
+          O prototipo nao salva segredos. No backend real, o token deve ser criptografado e administradores globais definem quais tenants podem usar cada Zabbix.
         </div>
         <menu>
           <button class="secondary-button" value="cancel">Cancelar</button>

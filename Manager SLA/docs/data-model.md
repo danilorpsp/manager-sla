@@ -34,6 +34,8 @@ Para desenvolvimento local, use SQLite. Para producao, a recomendacao e PostgreS
 - approved_by_user_id
 - approved_at
 
+Esta tabela representa o vinculo editavel entre usuario e tenant.
+
 Roles sugeridos:
 
 - `tenant_admin`
@@ -115,7 +117,6 @@ Roles sugeridos:
 ### zabbix_connections
 
 - id
-- tenant_id
 - name
 - base_url
 - auth_type
@@ -124,6 +125,19 @@ Roles sugeridos:
 - version
 - status
 - last_sync_at
+
+Cadastro global de servidores Zabbix.
+
+### tenant_zabbix_access
+
+- id
+- tenant_id
+- zabbix_connection_id
+- status
+- granted_by_user_id
+- granted_at
+
+Define quais tenants podem usar cada servidor Zabbix global.
 
 ### zabbix_bindings
 
@@ -205,8 +219,9 @@ Tipos sugeridos:
 - `dashboard_permissions(tenant_id, dashboard_id, user_id)`
 - `services(tenant_id, status)`
 - `assets(tenant_id, status)`
-- `zabbix_discovered_hosts(tenant_id, zabbix_connection_id)`
-- `zabbix_discovered_items(tenant_id, discovered_host_id)`
+- `tenant_zabbix_access(tenant_id, zabbix_connection_id)`
+- `zabbix_discovered_hosts(zabbix_connection_id)`
+- `zabbix_discovered_items(discovered_host_id)`
 - `zabbix_bindings(tenant_id, asset_id)`
 - `graph_templates(tenant_id, status)`
 - `asset_graph_templates(tenant_id, asset_id)`

@@ -17,6 +17,7 @@ Construir uma plataforma multi-tenant para gestao de SLA seguindo praticas ITIL,
    - Cadastro de empresas clientes.
    - Configuracoes isoladas por tenant.
    - Cada tenant possui administradores, usuarios, servicos, ativos e dashboards.
+   - Administradores podem mover usuarios entre tenants e ajustar papel/permissoes.
 
 3. Catalogo de servicos
    - Servicos seguindo uma logica ITIL.
@@ -24,7 +25,10 @@ Construir uma plataforma multi-tenant para gestao de SLA seguindo praticas ITIL,
    - Vinculo com um ou mais ativos Zabbix.
 
 4. Ativos e Zabbix
-   - Cliente cadastra ativo pelo painel.
+   - Administrador global cadastra servidores Zabbix uma vez.
+   - Administrador global libera quais tenants podem usar cada Zabbix.
+   - Um mesmo Zabbix pode atender varios tenants.
+   - Cliente cadastra ativo pelo painel usando somente Zabbix liberados ao tenant.
    - Administrador vincula host, item, trigger ou service do Zabbix.
    - Worker coleta historico periodicamente.
    - Dados consolidados viram metricas de SLA.
@@ -57,5 +61,7 @@ Construir uma plataforma multi-tenant para gestao de SLA seguindo praticas ITIL,
 - Toda consulta de negocio deve filtrar por `tenant_id`.
 - Usuario so acessa dashboard se tiver permissao explicita ou papel administrativo.
 - Nao permitir remover o ultimo administrador ativo de um tenant.
+- Ao alterar o tenant de um usuario, recalcular permissoes e auditar a alteracao.
 - Login externo nao cria acesso automatico ao tenant.
 - Credenciais Zabbix devem ser criptografadas.
+- Credenciais Zabbix pertencem ao catalogo global; tenants recebem apenas direito de uso.

@@ -18,9 +18,10 @@ Usuario de desenvolvimento:
 
 - Multi-tenant: varias empresas, cada uma com administradores, usuarios, servicos, ativos e dashboards.
 - Autenticacao: entrada via Office 365 e Google, com liberacao obrigatoria por administrador do tenant.
-- Permissoes: acesso por usuario e por dashboard.
+- Permissoes: acesso por usuario, por tenant e por dashboard.
+- Tenants: cadastro de empresas e edicao de usuario para escolher a empresa vinculada.
 - SLA por servico: meta, disponibilidade atual, janela de suporte, dono, incidentes e acao ITIL.
-- Integracao Zabbix: cadastro de servidores Zabbix por tenant, descoberta de hosts/itens monitorados, cadastro de ativos e vinculo com hosts, triggers e itens.
+- Integracao Zabbix: cadastro global de servidores Zabbix, liberacao de acesso por tenant, descoberta de hosts/itens monitorados, cadastro de ativos e vinculo com hosts, triggers e itens.
 - Templates de grafico: modelos estilo Grafana vinculados a ativos e itens Zabbix.
 - ITIL: fluxo de evento, incidente, problema, mudanca e revisao de SLA.
 

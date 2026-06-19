@@ -52,12 +52,21 @@ VALUES
   (2, 4, 8, 1, 1);
 
 INSERT OR IGNORE INTO zabbix_connections (
-  id, tenant_id, name, base_url, auth_type, encrypted_secret, environment, version, status, last_sync_at
+  id, name, base_url, auth_type, encrypted_secret, environment, version, status, last_sync_at
 )
 VALUES
-  (1, 1, 'Zabbix NOC', 'https://zabbix-noc.acme.local/api_jsonrpc.php', 'api_token', 'demo-encrypted-secret', 'production', '6.4', 'active', CURRENT_TIMESTAMP),
-  (2, 1, 'Zabbix Aplicacoes', 'https://zabbix-apps.acme.local/api_jsonrpc.php', 'api_token', 'demo-encrypted-secret', 'production', '7.0', 'warning', CURRENT_TIMESTAMP),
-  (3, 2, 'Zabbix Hospitalar', 'https://monitor.prisma.local/api_jsonrpc.php', 'api_token', 'demo-encrypted-secret', 'production', '6.0 LTS', 'active', CURRENT_TIMESTAMP);
+  (1, 'Zabbix NOC', 'https://zabbix-noc.acme.local/api_jsonrpc.php', 'api_token', 'demo-encrypted-secret', 'production', '6.4', 'active', CURRENT_TIMESTAMP),
+  (2, 'Zabbix Aplicacoes', 'https://zabbix-apps.acme.local/api_jsonrpc.php', 'api_token', 'demo-encrypted-secret', 'production', '7.0', 'warning', CURRENT_TIMESTAMP),
+  (3, 'Zabbix Hospitalar', 'https://monitor.prisma.local/api_jsonrpc.php', 'api_token', 'demo-encrypted-secret', 'production', '6.0 LTS', 'active', CURRENT_TIMESTAMP);
+
+INSERT OR IGNORE INTO tenant_zabbix_access (
+  tenant_id, zabbix_connection_id, status, granted_by_user_id, granted_at
+)
+VALUES
+  (1, 1, 'active', 8, CURRENT_TIMESTAMP),
+  (1, 2, 'active', 8, CURRENT_TIMESTAMP),
+  (2, 1, 'active', 8, CURRENT_TIMESTAMP),
+  (2, 3, 'active', 8, CURRENT_TIMESTAMP);
 
 INSERT OR IGNORE INTO services (
   id, tenant_id, name, description, owner_user_id, criticality, sla_target, support_window, status
@@ -80,32 +89,32 @@ VALUES
   (5, 2, 3, 'pep-app-03', 'application', 'production', 'warning', 5);
 
 INSERT OR IGNORE INTO zabbix_discovered_hosts (
-  id, tenant_id, zabbix_connection_id, host_id, host_name, interface_ip, status
+  id, zabbix_connection_id, host_id, host_name, interface_ip, status
 )
 VALUES
-  (1, 1, 1, '10481', 'core-edge-01', '10.10.0.1', 'active'),
-  (2, 1, 1, '10492', 'vpn-gw-02', '10.10.0.20', 'active'),
-  (3, 1, 2, '10520', 'billing-web-01', '10.20.4.11', 'warning'),
-  (4, 2, 3, '21031', 'api-laudos-01', '10.50.1.14', 'active'),
-  (5, 2, 3, '21062', 'pep-app-03', '10.50.2.33', 'warning');
+  (1, 1, '10481', 'core-edge-01', '10.10.0.1', 'active'),
+  (2, 1, '10492', 'vpn-gw-02', '10.10.0.20', 'active'),
+  (3, 2, '10520', 'billing-web-01', '10.20.4.11', 'warning'),
+  (4, 3, '21031', 'api-laudos-01', '10.50.1.14', 'active'),
+  (5, 3, '21062', 'pep-app-03', '10.50.2.33', 'warning');
 
 INSERT OR IGNORE INTO zabbix_discovered_items (
-  tenant_id, zabbix_connection_id, discovered_host_id, item_id, name, key_, value_type, metric_type, status
+  zabbix_connection_id, discovered_host_id, item_id, name, key_, value_type, metric_type, status
 )
 VALUES
-  (1, 1, 1, '30001', 'ICMP ping', 'icmpping', 'numeric_unsigned', 'availability', 'active'),
-  (1, 1, 1, '30002', 'ICMP loss', 'icmppingloss', 'numeric_float', 'packet_loss', 'active'),
-  (1, 1, 1, '30003', 'Interface WAN traffic', 'net.if.in[wan0]', 'numeric_unsigned', 'throughput', 'active'),
-  (1, 1, 2, '30022', 'VPN active sessions', 'vpn.sessions.active', 'numeric_unsigned', 'capacity', 'active'),
-  (1, 1, 2, '30023', 'Tunnel latency', 'vpn.tunnel.latency', 'numeric_float', 'latency', 'active'),
-  (1, 2, 3, '40101', 'HTTP service status', 'net.tcp.service[https]', 'numeric_unsigned', 'availability', 'active'),
-  (1, 2, 3, '40102', 'HTTP 5xx errors', 'web.errors.5xx', 'numeric_unsigned', 'incident', 'active'),
-  (1, 2, 3, '40103', 'Response time', 'web.test.time[billing]', 'numeric_float', 'latency', 'active'),
-  (2, 3, 4, '50218', 'API response time', 'web.test.time[laudos]', 'numeric_float', 'latency', 'active'),
-  (2, 3, 4, '50219', 'API availability', 'net.tcp.service[https]', 'numeric_unsigned', 'availability', 'active'),
-  (2, 3, 5, '60314', 'Service unavailable trigger', 'service.unavailable', 'numeric_unsigned', 'incident', 'active'),
-  (2, 3, 5, '60315', 'CPU utilization', 'system.cpu.util', 'numeric_float', 'capacity', 'active'),
-  (2, 3, 5, '60316', 'Memory available', 'vm.memory.size[available]', 'numeric_unsigned', 'capacity', 'active');
+  (1, 1, '30001', 'ICMP ping', 'icmpping', 'numeric_unsigned', 'availability', 'active'),
+  (1, 1, '30002', 'ICMP loss', 'icmppingloss', 'numeric_float', 'packet_loss', 'active'),
+  (1, 1, '30003', 'Interface WAN traffic', 'net.if.in[wan0]', 'numeric_unsigned', 'throughput', 'active'),
+  (1, 2, '30022', 'VPN active sessions', 'vpn.sessions.active', 'numeric_unsigned', 'capacity', 'active'),
+  (1, 2, '30023', 'Tunnel latency', 'vpn.tunnel.latency', 'numeric_float', 'latency', 'active'),
+  (2, 3, '40101', 'HTTP service status', 'net.tcp.service[https]', 'numeric_unsigned', 'availability', 'active'),
+  (2, 3, '40102', 'HTTP 5xx errors', 'web.errors.5xx', 'numeric_unsigned', 'incident', 'active'),
+  (2, 3, '40103', 'Response time', 'web.test.time[billing]', 'numeric_float', 'latency', 'active'),
+  (3, 4, '50218', 'API response time', 'web.test.time[laudos]', 'numeric_float', 'latency', 'active'),
+  (3, 4, '50219', 'API availability', 'net.tcp.service[https]', 'numeric_unsigned', 'availability', 'active'),
+  (3, 5, '60314', 'Service unavailable trigger', 'service.unavailable', 'numeric_unsigned', 'incident', 'active'),
+  (3, 5, '60315', 'CPU utilization', 'system.cpu.util', 'numeric_float', 'capacity', 'active'),
+  (3, 5, '60316', 'Memory available', 'vm.memory.size[available]', 'numeric_unsigned', 'capacity', 'active');
 
 INSERT OR IGNORE INTO service_assets (tenant_id, service_id, asset_id)
 VALUES

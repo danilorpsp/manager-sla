@@ -51,12 +51,12 @@ def tenant_summary(db_path: Optional[Path] = None) -> list[sqlite3.Row]:
               COUNT(DISTINCT tenant_users.user_id) AS users,
               COUNT(DISTINCT services.id) AS services,
               COUNT(DISTINCT assets.id) AS assets,
-              COUNT(DISTINCT zabbix_connections.id) AS zabbix_connections
+              COUNT(DISTINCT tenant_zabbix_access.zabbix_connection_id) AS zabbix_connections
             FROM tenants
             LEFT JOIN tenant_users ON tenant_users.tenant_id = tenants.id
             LEFT JOIN services ON services.tenant_id = tenants.id
             LEFT JOIN assets ON assets.tenant_id = tenants.id
-            LEFT JOIN zabbix_connections ON zabbix_connections.tenant_id = tenants.id
+            LEFT JOIN tenant_zabbix_access ON tenant_zabbix_access.tenant_id = tenants.id
             GROUP BY tenants.id
             ORDER BY tenants.name
             """
