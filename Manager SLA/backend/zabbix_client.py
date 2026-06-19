@@ -66,11 +66,19 @@ class ZabbixClient:
             },
         )
 
+    def hosts_with_items(self) -> List[Dict[str, Any]]:
+        hosts = self.hosts()
+        for host in hosts:
+            host["items"] = self.items_for_host(str(host["hostid"]))
+        return hosts
+
     def items_for_host(self, host_id: str) -> List[Dict[str, Any]]:
         return self.call(
             "item.get",
             {
                 "hostids": host_id,
-                "output": ["itemid", "name", "key_", "value_type", "status"],
+                "output": ["itemid", "name", "key_", "value_type", "status", "lastvalue"],
+                "filter": {"status": "0"},
+                "sortfield": "name",
             },
         )

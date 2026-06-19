@@ -79,6 +79,34 @@ VALUES
   (4, 2, 3, 'api-laudos-01', 'application', 'production', 'active', 5),
   (5, 2, 3, 'pep-app-03', 'application', 'production', 'warning', 5);
 
+INSERT OR IGNORE INTO zabbix_discovered_hosts (
+  id, tenant_id, zabbix_connection_id, host_id, host_name, interface_ip, status
+)
+VALUES
+  (1, 1, 1, '10481', 'core-edge-01', '10.10.0.1', 'active'),
+  (2, 1, 1, '10492', 'vpn-gw-02', '10.10.0.20', 'active'),
+  (3, 1, 2, '10520', 'billing-web-01', '10.20.4.11', 'warning'),
+  (4, 2, 3, '21031', 'api-laudos-01', '10.50.1.14', 'active'),
+  (5, 2, 3, '21062', 'pep-app-03', '10.50.2.33', 'warning');
+
+INSERT OR IGNORE INTO zabbix_discovered_items (
+  tenant_id, zabbix_connection_id, discovered_host_id, item_id, name, key_, value_type, metric_type, status
+)
+VALUES
+  (1, 1, 1, '30001', 'ICMP ping', 'icmpping', 'numeric_unsigned', 'availability', 'active'),
+  (1, 1, 1, '30002', 'ICMP loss', 'icmppingloss', 'numeric_float', 'packet_loss', 'active'),
+  (1, 1, 1, '30003', 'Interface WAN traffic', 'net.if.in[wan0]', 'numeric_unsigned', 'throughput', 'active'),
+  (1, 1, 2, '30022', 'VPN active sessions', 'vpn.sessions.active', 'numeric_unsigned', 'capacity', 'active'),
+  (1, 1, 2, '30023', 'Tunnel latency', 'vpn.tunnel.latency', 'numeric_float', 'latency', 'active'),
+  (1, 2, 3, '40101', 'HTTP service status', 'net.tcp.service[https]', 'numeric_unsigned', 'availability', 'active'),
+  (1, 2, 3, '40102', 'HTTP 5xx errors', 'web.errors.5xx', 'numeric_unsigned', 'incident', 'active'),
+  (1, 2, 3, '40103', 'Response time', 'web.test.time[billing]', 'numeric_float', 'latency', 'active'),
+  (2, 3, 4, '50218', 'API response time', 'web.test.time[laudos]', 'numeric_float', 'latency', 'active'),
+  (2, 3, 4, '50219', 'API availability', 'net.tcp.service[https]', 'numeric_unsigned', 'availability', 'active'),
+  (2, 3, 5, '60314', 'Service unavailable trigger', 'service.unavailable', 'numeric_unsigned', 'incident', 'active'),
+  (2, 3, 5, '60315', 'CPU utilization', 'system.cpu.util', 'numeric_float', 'capacity', 'active'),
+  (2, 3, 5, '60316', 'Memory available', 'vm.memory.size[available]', 'numeric_unsigned', 'capacity', 'active');
+
 INSERT OR IGNORE INTO service_assets (tenant_id, service_id, asset_id)
 VALUES
   (1, 1, 1),
@@ -96,6 +124,22 @@ VALUES
   (1, 3, 2, '10520', NULL, '40110', NULL, 'incident'),
   (2, 4, 3, '21031', '50218', NULL, NULL, 'latency'),
   (2, 5, 3, '21062', NULL, '60314', NULL, 'incident');
+
+INSERT OR IGNORE INTO graph_templates (
+  id, tenant_id, name, chart_type, description, unit, aggregation, warning_threshold, critical_threshold, status
+)
+VALUES
+  (1, 1, 'Disponibilidade ICMP', 'gauge', 'Gauge de disponibilidade por ping ICMP.', '%', 'avg', 99.50, 99.00, 'active'),
+  (2, 1, 'Erros HTTP 5xx', 'timeseries', 'Serie temporal de erros HTTP 5xx.', 'count', 'sum', 5, 15, 'active'),
+  (3, 2, 'Latencia API Laudos', 'stat', 'Painel stat para latencia p95 da API.', 'ms', 'p95', 700, 1200, 'active');
+
+INSERT OR IGNORE INTO asset_graph_templates (
+  tenant_id, asset_id, graph_template_id, zabbix_connection_id, host_id, item_id, item_key, panel_title, status
+)
+VALUES
+  (1, 1, 1, 1, '10481', '30001', 'icmpping', 'Disponibilidade ICMP - core-edge-01', 'active'),
+  (1, 3, 2, 2, '10520', '40102', 'web.errors.5xx', 'Erros HTTP 5xx - billing-web-01', 'active'),
+  (2, 4, 3, 3, '21031', '50218', 'web.test.time[laudos]', 'Latencia API Laudos - api-laudos-01', 'active');
 
 INSERT OR IGNORE INTO sla_snapshots (
   tenant_id, service_id, period_start, period_end, target_percent, actual_percent, downtime_minutes, incident_count, source

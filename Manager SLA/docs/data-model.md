@@ -87,6 +87,31 @@ Roles sugeridos:
 - status
 - created_by_user_id
 
+### zabbix_discovered_hosts
+
+- id
+- tenant_id
+- zabbix_connection_id
+- host_id
+- host_name
+- interface_ip
+- status
+- last_seen_at
+
+### zabbix_discovered_items
+
+- id
+- tenant_id
+- zabbix_connection_id
+- discovered_host_id
+- item_id
+- name
+- key_
+- value_type
+- metric_type
+- status
+- last_seen_at
+
 ### zabbix_connections
 
 - id
@@ -111,6 +136,32 @@ Roles sugeridos:
 - trigger_id
 - zabbix_service_id
 - metric_type
+
+### graph_templates
+
+- id
+- tenant_id
+- name
+- chart_type
+- description
+- unit
+- aggregation
+- warning_threshold
+- critical_threshold
+- status
+
+### asset_graph_templates
+
+- id
+- tenant_id
+- asset_id
+- graph_template_id
+- zabbix_connection_id
+- host_id
+- item_id
+- item_key
+- panel_title
+- status
 
 ### sla_snapshots
 
@@ -154,6 +205,10 @@ Tipos sugeridos:
 - `dashboard_permissions(tenant_id, dashboard_id, user_id)`
 - `services(tenant_id, status)`
 - `assets(tenant_id, status)`
+- `zabbix_discovered_hosts(tenant_id, zabbix_connection_id)`
+- `zabbix_discovered_items(tenant_id, discovered_host_id)`
 - `zabbix_bindings(tenant_id, asset_id)`
+- `graph_templates(tenant_id, status)`
+- `asset_graph_templates(tenant_id, asset_id)`
 - `sla_snapshots(tenant_id, service_id, period_start, period_end)`
 - `itil_records(tenant_id, service_id, type, status)`

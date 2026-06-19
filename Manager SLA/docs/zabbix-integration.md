@@ -10,11 +10,12 @@ Permitir que cada tenant conecte sua propria origem Zabbix e vincule ativos do p
 2. Cadastro recebe nome, URL da API, ambiente, metodo de autenticacao e segredo.
 3. Sistema valida `apiinfo.version`.
 4. Sistema autentica via token ou usuario/senha.
-5. Cliente cadastra um ativo no painel.
-6. Administrador escolhe qual servidor Zabbix sera usado pelo ativo.
-7. Administrador vincula o ativo a um `hostid`.
-8. Para cada servico, administrador define itens ou triggers que afetam o SLA.
-9. Worker coleta historico e consolida snapshots.
+5. Sistema executa descoberta inicial com `host.get` e `item.get`.
+6. Sistema grava hosts em `zabbix_discovered_hosts` e itens em `zabbix_discovered_items`.
+7. Cliente cadastra um ativo no painel escolhendo um host descoberto.
+8. Administrador escolhe quais itens ou triggers daquele host afetam o SLA.
+9. Para cada servico, administrador vincula ativos e metricas de SLA.
+10. Worker coleta historico e consolida snapshots.
 
 ## Metodos Zabbix relevantes
 

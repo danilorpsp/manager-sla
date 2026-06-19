@@ -114,6 +114,42 @@ CREATE TABLE IF NOT EXISTS assets (
   UNIQUE (tenant_id, name)
 );
 
+CREATE TABLE IF NOT EXISTS zabbix_discovered_hosts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id INTEGER NOT NULL,
+  zabbix_connection_id INTEGER NOT NULL,
+  host_id TEXT NOT NULL,
+  host_name TEXT NOT NULL,
+  interface_ip TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE,
+  UNIQUE (tenant_id, zabbix_connection_id, host_id)
+);
+
+CREATE TABLE IF NOT EXISTS zabbix_discovered_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id INTEGER NOT NULL,
+  zabbix_connection_id INTEGER NOT NULL,
+  discovered_host_id INTEGER NOT NULL,
+  item_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  key_ TEXT NOT NULL,
+  value_type TEXT,
+  metric_type TEXT NOT NULL DEFAULT 'custom',
+  status TEXT NOT NULL DEFAULT 'active',
+  last_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE,
+  FOREIGN KEY (discovered_host_id) REFERENCES zabbix_discovered_hosts(id) ON DELETE CASCADE,
+  UNIQUE (tenant_id, zabbix_connection_id, item_id)
+);
+
 CREATE TABLE IF NOT EXISTS service_assets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   tenant_id INTEGER NOT NULL,
@@ -141,6 +177,43 @@ CREATE TABLE IF NOT EXISTS zabbix_bindings (
   FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
   FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
   FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS graph_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  chart_type TEXT NOT NULL,
+  description TEXT,
+  unit TEXT NOT NULL DEFAULT '%',
+  aggregation TEXT NOT NULL DEFAULT 'avg',
+  warning_threshold REAL,
+  critical_threshold REAL,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS asset_graph_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tenant_id INTEGER NOT NULL,
+  asset_id INTEGER NOT NULL,
+  graph_template_id INTEGER NOT NULL,
+  zabbix_connection_id INTEGER NOT NULL,
+  host_id TEXT NOT NULL,
+  item_id TEXT NOT NULL,
+  item_key TEXT NOT NULL,
+  panel_title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+  FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE,
+  FOREIGN KEY (graph_template_id) REFERENCES graph_templates(id) ON DELETE CASCADE,
+  FOREIGN KEY (zabbix_connection_id) REFERENCES zabbix_connections(id) ON DELETE CASCADE,
+  UNIQUE (tenant_id, asset_id, graph_template_id, item_id)
 );
 
 CREATE TABLE IF NOT EXISTS sla_snapshots (
@@ -193,8 +266,20 @@ CREATE INDEX IF NOT EXISTS idx_assets_tenant_status
 CREATE INDEX IF NOT EXISTS idx_zabbix_connections_tenant_status
   ON zabbix_connections(tenant_id, status);
 
+CREATE INDEX IF NOT EXISTS idx_zabbix_discovered_hosts_tenant_connection
+  ON zabbix_discovered_hosts(tenant_id, zabbix_connection_id);
+
+CREATE INDEX IF NOT EXISTS idx_zabbix_discovered_items_tenant_host
+  ON zabbix_discovered_items(tenant_id, discovered_host_id);
+
 CREATE INDEX IF NOT EXISTS idx_zabbix_bindings_tenant_asset
   ON zabbix_bindings(tenant_id, asset_id);
+
+CREATE INDEX IF NOT EXISTS idx_graph_templates_tenant_status
+  ON graph_templates(tenant_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_asset_graph_templates_tenant_asset
+  ON asset_graph_templates(tenant_id, asset_id);
 
 CREATE INDEX IF NOT EXISTS idx_sla_snapshots_tenant_service_period
   ON sla_snapshots(tenant_id, service_id, period_start, period_end);

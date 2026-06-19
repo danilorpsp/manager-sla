@@ -33,6 +33,7 @@ Construir uma plataforma multi-tenant para gestao de SLA seguindo praticas ITIL,
    - Dashboards executivos, operacionais e por contrato.
    - Permissao por usuario.
    - Graficos por servico, periodo, tenant, severidade e disponibilidade.
+   - Templates de grafico estilo Grafana vinculados a ativos e itens Zabbix.
 
 6. ITIL
    - Evento vindo do Zabbix.
