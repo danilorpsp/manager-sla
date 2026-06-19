@@ -2,6 +2,9 @@ const tenants = [
   {
     id: "acme",
     name: "Acme Telecom",
+    slug: "acme-telecom",
+    status: "active",
+    zabbixAccess: ["acme-noc", "acme-apps"],
     admins: ["Ana Costa", "Marcos Lima"],
     users: 18,
     services: [
@@ -85,68 +88,6 @@ const tenants = [
         status: "risk",
       },
     ],
-    zabbixServers: [
-      {
-        id: "acme-noc",
-        name: "Zabbix NOC",
-        url: "https://zabbix-noc.acme.local/api_jsonrpc.php",
-        version: "6.4",
-        auth: "API Token",
-        environment: "Producao",
-        hosts: 128,
-        items: 2406,
-        lastSync: "Hoje 09:42",
-        status: "ok",
-        discoveredHosts: [
-          {
-            hostId: "10481",
-            name: "core-edge-01",
-            interface: "10.10.0.1",
-            status: "ok",
-            items: [
-              { itemId: "30001", name: "ICMP ping", key: "icmpping", type: "availability" },
-              { itemId: "30002", name: "ICMP loss", key: "icmppingloss", type: "packet_loss" },
-              { itemId: "30003", name: "Interface WAN traffic", key: "net.if.in[wan0]", type: "throughput" },
-            ],
-          },
-          {
-            hostId: "10492",
-            name: "vpn-gw-02",
-            interface: "10.10.0.20",
-            status: "ok",
-            items: [
-              { itemId: "30022", name: "VPN active sessions", key: "vpn.sessions.active", type: "capacity" },
-              { itemId: "30023", name: "Tunnel latency", key: "vpn.tunnel.latency", type: "latency" },
-            ],
-          },
-        ],
-      },
-      {
-        id: "acme-apps",
-        name: "Zabbix Aplicacoes",
-        url: "https://zabbix-apps.acme.local/api_jsonrpc.php",
-        version: "7.0",
-        auth: "API Token",
-        environment: "Producao",
-        hosts: 42,
-        items: 914,
-        lastSync: "Hoje 09:37",
-        status: "risk",
-        discoveredHosts: [
-          {
-            hostId: "10520",
-            name: "billing-web-01",
-            interface: "10.20.4.11",
-            status: "risk",
-            items: [
-              { itemId: "40101", name: "HTTP service status", key: "net.tcp.service[https]", type: "availability" },
-              { itemId: "40102", name: "HTTP 5xx errors", key: "web.errors.5xx", type: "incident" },
-              { itemId: "40103", name: "Response time", key: "web.test.time[billing]", type: "latency" },
-            ],
-          },
-        ],
-      },
-    ],
     usersList: [
       { name: "Ana Costa", provider: "Office 365", role: "Administrador", dashboards: "Todos", status: "ok" },
       { name: "Marcos Lima", provider: "Google", role: "Administrador", dashboards: "Operacional, Executivo", status: "ok" },
@@ -157,6 +98,9 @@ const tenants = [
   {
     id: "prisma",
     name: "Hospital Prisma",
+    slug: "hospital-prisma",
+    status: "active",
+    zabbixAccess: ["acme-noc", "prisma-main"],
     admins: ["Livia Duarte"],
     users: 9,
     services: [
@@ -210,47 +154,108 @@ const tenants = [
         status: "ok",
       },
     ],
-    zabbixServers: [
-      {
-        id: "prisma-main",
-        name: "Zabbix Hospitalar",
-        url: "https://monitor.prisma.local/api_jsonrpc.php",
-        version: "6.0 LTS",
-        auth: "API Token",
-        environment: "Producao",
-        hosts: 67,
-        items: 1330,
-        lastSync: "Hoje 09:51",
-        status: "ok",
-        discoveredHosts: [
-          {
-            hostId: "21031",
-            name: "api-laudos-01",
-            interface: "10.50.1.14",
-            status: "ok",
-            items: [
-              { itemId: "50218", name: "API response time", key: "web.test.time[laudos]", type: "latency" },
-              { itemId: "50219", name: "API availability", key: "net.tcp.service[https]", type: "availability" },
-            ],
-          },
-          {
-            hostId: "21062",
-            name: "pep-app-03",
-            interface: "10.50.2.33",
-            status: "risk",
-            items: [
-              { itemId: "60314", name: "Service unavailable trigger", key: "service.unavailable", type: "incident" },
-              { itemId: "60315", name: "CPU utilization", key: "system.cpu.util", type: "capacity" },
-              { itemId: "60316", name: "Memory available", key: "vm.memory.size[available]", type: "capacity" },
-            ],
-          },
-        ],
-      },
-    ],
     usersList: [
       { name: "Livia Duarte", provider: "Office 365", role: "Administrador", dashboards: "Todos", status: "ok" },
       { name: "Mateus Rocha", provider: "Google", role: "Analista", dashboards: "Operacional", status: "ok" },
       { name: "Carla Mendes", provider: "Office 365", role: "Gestor", dashboards: "Executivo", status: "ok" },
+    ],
+  },
+];
+
+const globalZabbixServers = [
+  {
+    id: "acme-noc",
+    name: "Zabbix NOC",
+    url: "https://zabbix-noc.acme.local/api_jsonrpc.php",
+    version: "6.4",
+    auth: "API Token",
+    environment: "Producao",
+    hosts: 128,
+    items: 2406,
+    lastSync: "Hoje 09:42",
+    status: "ok",
+    discoveredHosts: [
+      {
+        hostId: "10481",
+        name: "core-edge-01",
+        interface: "10.10.0.1",
+        status: "ok",
+        items: [
+          { itemId: "30001", name: "ICMP ping", key: "icmpping", type: "availability" },
+          { itemId: "30002", name: "ICMP loss", key: "icmppingloss", type: "packet_loss" },
+          { itemId: "30003", name: "Interface WAN traffic", key: "net.if.in[wan0]", type: "throughput" },
+        ],
+      },
+      {
+        hostId: "10492",
+        name: "vpn-gw-02",
+        interface: "10.10.0.20",
+        status: "ok",
+        items: [
+          { itemId: "30022", name: "VPN active sessions", key: "vpn.sessions.active", type: "capacity" },
+          { itemId: "30023", name: "Tunnel latency", key: "vpn.tunnel.latency", type: "latency" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "acme-apps",
+    name: "Zabbix Aplicacoes",
+    url: "https://zabbix-apps.acme.local/api_jsonrpc.php",
+    version: "7.0",
+    auth: "API Token",
+    environment: "Producao",
+    hosts: 42,
+    items: 914,
+    lastSync: "Hoje 09:37",
+    status: "risk",
+    discoveredHosts: [
+      {
+        hostId: "10520",
+        name: "billing-web-01",
+        interface: "10.20.4.11",
+        status: "risk",
+        items: [
+          { itemId: "40101", name: "HTTP service status", key: "net.tcp.service[https]", type: "availability" },
+          { itemId: "40102", name: "HTTP 5xx errors", key: "web.errors.5xx", type: "incident" },
+          { itemId: "40103", name: "Response time", key: "web.test.time[billing]", type: "latency" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "prisma-main",
+    name: "Zabbix Hospitalar",
+    url: "https://monitor.prisma.local/api_jsonrpc.php",
+    version: "6.0 LTS",
+    auth: "API Token",
+    environment: "Producao",
+    hosts: 67,
+    items: 1330,
+    lastSync: "Hoje 09:51",
+    status: "ok",
+    discoveredHosts: [
+      {
+        hostId: "21031",
+        name: "api-laudos-01",
+        interface: "10.50.1.14",
+        status: "ok",
+        items: [
+          { itemId: "50218", name: "API response time", key: "web.test.time[laudos]", type: "latency" },
+          { itemId: "50219", name: "API availability", key: "net.tcp.service[https]", type: "availability" },
+        ],
+      },
+      {
+        hostId: "21062",
+        name: "pep-app-03",
+        interface: "10.50.2.33",
+        status: "risk",
+        items: [
+          { itemId: "60314", name: "Service unavailable trigger", key: "service.unavailable", type: "incident" },
+          { itemId: "60315", name: "CPU utilization", key: "system.cpu.util", type: "capacity" },
+          { itemId: "60316", name: "Memory available", key: "vm.memory.size[available]", type: "capacity" },
+        ],
+      },
     ],
   },
 ];
@@ -265,7 +270,7 @@ const defaultAdmin = {
 const state = {
   tenantId: tenants[0].id,
   selectedServiceId: tenants[0].services[0].id,
-  selectedZabbixServerId: tenants[0].zabbixServers[0].id,
+  selectedZabbixServerId: tenants[0].zabbixAccess[0],
   selectedTemplateId: tenants[0].chartTemplates[0].id,
 };
 
@@ -284,6 +289,8 @@ const statusLabel = {
   risk: "Em risco",
   late: "Fora do SLA",
   pending: "Pendente",
+  active: "Ativo",
+  blocked: "Bloqueado",
 };
 
 function slugify(value) {
@@ -299,12 +306,31 @@ function getTenant() {
   return tenants.find((tenant) => tenant.id === state.tenantId);
 }
 
+function tenantUserCount(tenant) {
+  return tenant.usersList.length;
+}
+
+function getAccessibleZabbixServers(tenant = getTenant()) {
+  const access = tenant.zabbixAccess || [];
+  return globalZabbixServers.filter((server) => access.includes(server.id));
+}
+
+function syncTenantSelectors() {
+  const options = tenants
+    .map((tenant) => `<option value="${tenant.id}">${tenant.name}</option>`)
+    .join("");
+
+  tenantSelect.innerHTML = options;
+  document.querySelector("#zabbix-tenant-options").innerHTML = options;
+  document.querySelector("#user-tenant").innerHTML = options;
+}
+
 function getDiscoveredItemsForAsset(assetName) {
   const tenant = getTenant();
   const asset = tenant.assets.find((item) => item.name === assetName);
   if (!asset) return [];
 
-  return (tenant.zabbixServers || [])
+  return getAccessibleZabbixServers(tenant)
     .flatMap((server) => server.discoveredHosts || [])
     .filter((host) => host.hostId === asset.zabbixId || host.name === asset.name)
     .flatMap((host) =>
@@ -358,17 +384,12 @@ function handleLogin(event) {
 }
 
 function initTenantSelect() {
-  tenantSelect.innerHTML = tenants
-    .map((tenant) => `<option value="${tenant.id}">${tenant.name}</option>`)
-    .join("");
-  document.querySelector("#zabbix-tenant-options").innerHTML = tenants
-    .map((tenant) => `<option value="${tenant.id}">${tenant.name}</option>`)
-    .join("");
+  syncTenantSelectors();
 
   tenantSelect.addEventListener("change", () => {
     state.tenantId = tenantSelect.value;
     state.selectedServiceId = getTenant().services[0]?.id;
-    state.selectedZabbixServerId = getTenant().zabbixServers[0]?.id;
+    state.selectedZabbixServerId = getAccessibleZabbixServers()[0]?.id;
     state.selectedTemplateId = getTenant().chartTemplates[0]?.id;
     renderAll();
   });
@@ -377,12 +398,14 @@ function initTenantSelect() {
 function renderMetrics() {
   const tenant = getTenant();
   const services = tenant.services;
-  const average = services.reduce((sum, service) => sum + service.actual, 0) / services.length;
+  const average = services.length
+    ? services.reduce((sum, service) => sum + service.actual, 0) / services.length
+    : 0;
   const risk = services.filter((service) => service.actual < service.target).length;
   const incidents = services.reduce((sum, service) => sum + service.incidents, 0);
 
   document.querySelector("#tenant-summary").textContent =
-    `${tenant.admins.length} admin(s), ${tenant.users} usuario(s), ${services.length} servico(s).`;
+    `${tenant.admins.length} admin(s), ${tenantUserCount(tenant)} usuario(s), ${services.length} servico(s).`;
   document.querySelector("#metric-sla").textContent = formatPercent(average);
   document.querySelector("#metric-risk").textContent = risk;
   document.querySelector("#metric-incidents").textContent = incidents;
@@ -405,6 +428,16 @@ function renderChart() {
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, width, height);
+
+  if (!services.length) {
+    ctx.fillStyle = "#162023";
+    ctx.font = "800 28px Inter, Arial, sans-serif";
+    ctx.fillText("Nenhum SLA cadastrado", 38, 58);
+    ctx.fillStyle = "#647276";
+    ctx.font = "16px Inter, Arial, sans-serif";
+    ctx.fillText("Cadastre servicos e ativos para montar o radar radial deste tenant.", 38, 88);
+    return;
+  }
 
   ctx.fillStyle = "#162023";
   ctx.font = "700 26px Inter, Arial, sans-serif";
@@ -511,7 +544,16 @@ function renderChart() {
 function renderServiceDetails() {
   const tenant = getTenant();
   const service = tenant.services.find((item) => item.id === state.selectedServiceId) || tenant.services[0];
-  if (!service) return;
+  if (!service) {
+    document.querySelector("#service-title").textContent = "Nenhum servico cadastrado";
+    document.querySelector("#service-description").textContent =
+      "Cadastre um SLA por servico para visualizar detalhes operacionais.";
+    document.querySelector("#service-target").textContent = "-";
+    document.querySelector("#service-zabbix").textContent = "-";
+    document.querySelector("#service-owner").textContent = "-";
+    document.querySelector("#service-action").textContent = "-";
+    return;
+  }
 
   document.querySelector("#service-title").textContent = service.name;
   document.querySelector("#service-description").textContent =
@@ -570,46 +612,70 @@ function renderAssets() {
 
 function renderZabbixServers() {
   const tenant = getTenant();
-  const servers = tenant.zabbixServers || [];
-  const activeServers = servers.filter((server) => server.status === "ok").length;
-  const hostCount = servers.reduce((sum, server) => sum + server.hosts, 0);
-  const lastSync = servers[0]?.lastSync || "-";
+  const accessibleServers = getAccessibleZabbixServers(tenant);
+  const activeServers = globalZabbixServers.filter((server) => server.status === "ok").length;
+  const hostCount = accessibleServers.reduce((sum, server) => sum + server.hosts, 0);
+  const lastSync = accessibleServers[0]?.lastSync || "-";
 
   document.querySelector("#zabbix-active-count").textContent = activeServers;
   document.querySelector("#zabbix-host-count").textContent = hostCount;
   document.querySelector("#zabbix-last-sync").textContent = lastSync;
-  document.querySelector("#zabbix-grid").innerHTML = servers
+  document.querySelector("#zabbix-grid").innerHTML = globalZabbixServers
     .map(
-      (server) => `
+      (server) => {
+        const hasAccess = (tenant.zabbixAccess || []).includes(server.id);
+        const tenantsUsing = tenants.filter((item) => (item.zabbixAccess || []).includes(server.id));
+        return `
         <article class="asset-card connection-card">
           <div class="connection-card-header">
             <span class="pill ${server.status === "ok" ? "ok" : "risk"}">${statusLabel[server.status]}</span>
-            <span>${server.environment}</span>
+            <span>${hasAccess ? "Liberado para este tenant" : "Sem acesso neste tenant"}</span>
           </div>
           <h3>${server.name}</h3>
           <p><strong>URL:</strong> <span class="mono-value">${server.url}</span></p>
           <p><strong>Versao:</strong> ${server.version}</p>
           <p><strong>Autenticacao:</strong> ${server.auth}</p>
+          <p><strong>Tenants com acesso:</strong> ${tenantsUsing.map((item) => item.name).join(", ") || "-"}</p>
           <p><strong>Hosts:</strong> ${server.hosts}</p>
           <p><strong>Itens:</strong> ${server.items}</p>
           <p><strong>Ultima sync:</strong> ${server.lastSync}</p>
+          <button class="secondary-button compact-button" type="button" data-toggle-zabbix-access="${server.id}">
+            ${hasAccess ? "Remover acesso do tenant" : "Liberar para tenant"}
+          </button>
           <button class="secondary-button compact-button" type="button" data-zabbix-server="${server.id}">Ver ativos e itens</button>
         </article>
-      `,
+      `;
+      },
     )
     .join("");
 
+  document.querySelectorAll("[data-toggle-zabbix-access]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const serverId = button.dataset.toggleZabbixAccess;
+      tenant.zabbixAccess = tenant.zabbixAccess || [];
+      if (tenant.zabbixAccess.includes(serverId)) {
+        tenant.zabbixAccess = tenant.zabbixAccess.filter((id) => id !== serverId);
+      } else {
+        tenant.zabbixAccess.push(serverId);
+      }
+      state.selectedZabbixServerId = getAccessibleZabbixServers(tenant)[0]?.id;
+      renderAll();
+    });
+  });
+
   document.querySelectorAll("[data-zabbix-server]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.selectedZabbixServerId = button.dataset.zabbixServer;
-      renderZabbixDiscovery();
+      if ((tenant.zabbixAccess || []).includes(button.dataset.zabbixServer)) {
+        state.selectedZabbixServerId = button.dataset.zabbixServer;
+        renderZabbixDiscovery();
+      }
     });
   });
 }
 
 function renderZabbixDiscovery() {
   const tenant = getTenant();
-  const servers = tenant.zabbixServers || [];
+  const servers = getAccessibleZabbixServers(tenant);
   const select = document.querySelector("#zabbix-server-select");
   const selectedServer =
     servers.find((server) => server.id === state.selectedZabbixServerId) || servers[0];
@@ -619,7 +685,7 @@ function renderZabbixDiscovery() {
     .join("");
 
   if (!selectedServer) {
-    document.querySelector("#discovery-summary").textContent = "Nenhum servidor cadastrado";
+    document.querySelector("#discovery-summary").textContent = "Nenhum servidor liberado para este tenant";
     document.querySelector("#discovery-table").innerHTML = "";
     return;
   }
@@ -687,6 +753,13 @@ function renderTemplates() {
   const selectedTemplate =
     templates.find((template) => template.id === state.selectedTemplateId) || templates[0];
 
+  if (!templates.length) {
+    document.querySelector("#templates-grid").innerHTML = "";
+    document.querySelector("#templates-table").innerHTML = "";
+    renderTemplatePreview(null);
+    return;
+  }
+
   document.querySelector("#templates-grid").innerHTML = templates
     .map(
       (template) => `
@@ -733,8 +806,171 @@ function renderTemplates() {
   renderTemplatePreview(selectedTemplate);
 }
 
+function renderTenants() {
+  const totalAdmins = tenants.reduce((sum, tenant) => sum + tenant.admins.length, 0);
+  const totalUsers = tenants.reduce((sum, tenant) => sum + tenantUserCount(tenant), 0);
+
+  document.querySelector("#tenant-count").textContent = tenants.length;
+  document.querySelector("#tenant-admin-count").textContent = totalAdmins;
+  document.querySelector("#tenant-user-count").textContent = totalUsers;
+  document.querySelector("#tenants-grid").innerHTML = tenants
+    .map(
+      (tenant) => `
+        <article class="asset-card tenant-detail-card ${tenant.id === state.tenantId ? "is-selected" : ""}" data-tenant-card="${tenant.id}">
+          <div class="connection-card-header">
+            <span class="pill ${tenant.status === "active" ? "ok" : tenant.status === "pending" ? "pending" : "blocked"}">${statusLabel[tenant.status]}</span>
+            <span>${tenant.slug}</span>
+          </div>
+          <h3>${tenant.name}</h3>
+          <p><strong>Administradores:</strong> ${tenant.admins.join(", ") || "-"}</p>
+          <p><strong>Usuarios:</strong> ${tenantUserCount(tenant)}</p>
+          <p><strong>Servicos:</strong> ${tenant.services.length}</p>
+          <button class="secondary-button compact-button" type="button" data-select-tenant="${tenant.id}">Abrir tenant</button>
+        </article>
+      `,
+    )
+    .join("");
+
+  document.querySelector("#tenants-table").innerHTML = tenants
+    .map(
+      (tenant) => `
+        <tr data-select-tenant="${tenant.id}">
+          <td><strong>${tenant.name}</strong></td>
+          <td><span class="mono-value">${tenant.slug}</span></td>
+          <td>${tenant.admins.length}</td>
+          <td>${tenantUserCount(tenant)}</td>
+          <td>${tenant.services.length}</td>
+          <td><span class="pill ${tenant.status === "active" ? "ok" : tenant.status === "pending" ? "pending" : "blocked"}">${statusLabel[tenant.status]}</span></td>
+        </tr>
+      `,
+    )
+    .join("");
+
+  document.querySelectorAll("[data-select-tenant]").forEach((element) => {
+    element.addEventListener("click", () => {
+      state.tenantId = element.dataset.selectTenant;
+      state.selectedServiceId = getTenant().services[0]?.id;
+      state.selectedZabbixServerId = getAccessibleZabbixServers()[0]?.id;
+      state.selectedTemplateId = getTenant().chartTemplates[0]?.id;
+      renderAll();
+      showView("dashboard");
+    });
+  });
+}
+
+function handleTenantSubmit(event) {
+  event.preventDefault();
+  const name = document.querySelector("#tenant-name").value.trim();
+  const slug = document.querySelector("#tenant-slug").value.trim() || slugify(name);
+  const admin = document.querySelector("#tenant-admin").value.trim() || defaultAdmin.name;
+  const status = document.querySelector("#tenant-status").value;
+
+  if (!name) return;
+
+  const id = slugify(slug || name);
+  const tenant = {
+    id: tenants.some((item) => item.id === id) ? `${id}-${Date.now()}` : id,
+    name,
+    slug,
+    status,
+    admins: [admin],
+    users: 1,
+    zabbixAccess: [],
+    services: [],
+    assets: [],
+    chartTemplates: [],
+    usersList: [
+      {
+        name: admin,
+        provider: "Local",
+        role: "Administrador",
+        dashboards: "Todos",
+        status: "ok",
+      },
+    ],
+  };
+
+  tenants.push(tenant);
+  state.tenantId = tenant.id;
+  state.selectedServiceId = undefined;
+  state.selectedZabbixServerId = undefined;
+  state.selectedTemplateId = undefined;
+  document.querySelector("#tenant-form").reset();
+  document.querySelector("#tenant-dialog").close();
+  syncTenantSelectors();
+  renderAll();
+  showView("tenants");
+}
+
+function openUserDialog(user, tenantId = state.tenantId) {
+  syncTenantSelectors();
+  const tenant = tenants.find((item) => item.id === tenantId) || getTenant();
+
+  document.querySelector("#user-original-tenant").value = tenant.id;
+  document.querySelector("#user-original-name").value = user?.name || "";
+  document.querySelector("#user-name").value = user?.name || "";
+  document.querySelector("#user-tenant").value = tenant.id;
+  document.querySelector("#user-provider").value = user?.provider || "Office 365";
+  document.querySelector("#user-role").value = user?.role || "Viewer";
+  document.querySelector("#user-dashboards").value = user?.dashboards || "Operacional";
+  document.querySelector("#user-status").value = user?.status || "pending";
+  document.querySelector("#user-dialog").showModal();
+}
+
+function handleUserSubmit(event) {
+  event.preventDefault();
+  const originalTenantId = document.querySelector("#user-original-tenant").value;
+  const originalName = document.querySelector("#user-original-name").value;
+  const targetTenantId = document.querySelector("#user-tenant").value;
+  const targetTenant = tenants.find((tenant) => tenant.id === targetTenantId);
+  const sourceTenant = tenants.find((tenant) => tenant.id === originalTenantId);
+  const user = {
+    name: document.querySelector("#user-name").value.trim(),
+    provider: document.querySelector("#user-provider").value,
+    role: document.querySelector("#user-role").value,
+    dashboards: document.querySelector("#user-dashboards").value.trim() || "Operacional",
+    status: document.querySelector("#user-status").value,
+  };
+
+  if (!user.name || !targetTenant) return;
+
+  if (sourceTenant && originalName) {
+    sourceTenant.usersList = sourceTenant.usersList.filter((item) => item.name !== originalName);
+    sourceTenant.admins = sourceTenant.admins.filter((name) => name !== originalName);
+  }
+
+  const existingIndex = targetTenant.usersList.findIndex((item) => item.name === user.name);
+  if (existingIndex >= 0) {
+    targetTenant.usersList[existingIndex] = user;
+  } else {
+    targetTenant.usersList.push(user);
+  }
+
+  if (user.role === "Administrador" && !targetTenant.admins.includes(user.name)) {
+    targetTenant.admins.push(user.name);
+  }
+
+  state.tenantId = targetTenant.id;
+  document.querySelector("#user-form").reset();
+  document.querySelector("#user-dialog").close();
+  syncTenantSelectors();
+  renderAll();
+  showView("users");
+}
+
 function renderTemplatePreview(template) {
-  if (!template) return;
+  if (!template) {
+    document.querySelector("#template-preview-title").textContent = "Nenhum template cadastrado";
+    document.querySelector("#template-preview-asset").textContent = "-";
+    document.querySelector("#template-preview-item").textContent = "-";
+    document.querySelector("#template-preview-thresholds").textContent = "-";
+    document.querySelector("#template-preview-panel").innerHTML = `
+      <span></span>
+      <strong>-</strong>
+      <small>Sem template selecionado</small>
+    `;
+    return;
+  }
 
   document.querySelector("#template-preview-title").textContent = template.name;
   document.querySelector("#template-preview-asset").textContent = template.asset;
@@ -793,8 +1029,8 @@ function handleZabbixSubmit(event) {
 
   if (!name || !url) return;
 
-  const id = `${tenant.id}-${slugify(name)}`;
-  const existing = tenant.zabbixServers.some((server) => server.id === id);
+  const id = slugify(name);
+  const existing = globalZabbixServers.some((server) => server.id === id);
   const server = {
     id: existing ? `${id}-${Date.now()}` : id,
     name,
@@ -831,7 +1067,9 @@ function handleZabbixSubmit(event) {
     ],
   };
 
-  tenant.zabbixServers.unshift(server);
+  globalZabbixServers.unshift(server);
+  tenant.zabbixAccess = tenant.zabbixAccess || [];
+  tenant.zabbixAccess.unshift(server.id);
   state.selectedZabbixServerId = server.id;
   document.querySelector("#zabbix-form").reset();
   document.querySelector("#zabbix-dialog").close();
@@ -844,16 +1082,25 @@ function renderUsers() {
   document.querySelector("#users-table").innerHTML = tenant.usersList
     .map(
       (user) => `
-        <tr>
+        <tr data-user-name="${user.name}">
           <td><strong>${user.name}</strong></td>
+          <td>${tenant.name}</td>
           <td>${user.provider}</td>
           <td>${user.role}</td>
           <td>${user.dashboards}</td>
           <td><span class="pill ${user.status}">${statusLabel[user.status]}</span></td>
+          <td><button class="secondary-button table-action" type="button" data-edit-user="${user.name}">Editar</button></td>
         </tr>
       `,
     )
     .join("");
+
+  document.querySelectorAll("[data-edit-user]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const user = tenant.usersList.find((item) => item.name === button.dataset.editUser);
+      openUserDialog(user, tenant.id);
+    });
+  });
 }
 
 function showView(viewName) {
@@ -866,6 +1113,7 @@ function showView(viewName) {
     assets: "Ativos Zabbix",
     zabbix: "Servidores Zabbix",
     templates: "Templates de grafico",
+    tenants: "Tenants e empresas",
     users: "Usuarios e permissoes",
     itil: "Fluxo ITIL",
   };
@@ -882,6 +1130,7 @@ function renderAll() {
   renderZabbixServers();
   renderZabbixDiscovery();
   renderTemplates();
+  renderTenants();
   renderUsers();
 }
 
@@ -907,6 +1156,28 @@ document.querySelector("#new-template-button").addEventListener("click", () => {
 
 document.querySelector("#template-asset").addEventListener("change", populateTemplateForm);
 document.querySelector("#template-form").addEventListener("submit", handleTemplateSubmit);
+
+document.querySelector("#new-tenant-button").addEventListener("click", () => {
+  document.querySelector("#tenant-slug").value = "";
+  document.querySelector("#tenant-dialog").showModal();
+});
+
+document.querySelector("#tenant-name").addEventListener("input", (event) => {
+  const slugInput = document.querySelector("#tenant-slug");
+  if (!slugInput.value || slugInput.dataset.autogenerated === "true") {
+    slugInput.value = slugify(event.target.value);
+    slugInput.dataset.autogenerated = "true";
+  }
+});
+
+document.querySelector("#tenant-slug").addEventListener("input", (event) => {
+  event.target.dataset.autogenerated = "false";
+});
+
+document.querySelector("#tenant-form").addEventListener("submit", handleTenantSubmit);
+
+document.querySelector("#add-user-button").addEventListener("click", () => openUserDialog(null, state.tenantId));
+document.querySelector("#user-form").addEventListener("submit", handleUserSubmit);
 
 document.querySelector("#zabbix-server-select").addEventListener("change", (event) => {
   state.selectedZabbixServerId = event.target.value;
